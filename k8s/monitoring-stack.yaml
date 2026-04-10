@@ -1,0 +1,18 @@
+# Helm values for Prometheus
+server:
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+
+# Automatically scrape pods that have the 'app' label
+extraScrapeConfigs: |
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: (web-store|catalog|logic-engine)
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod_name

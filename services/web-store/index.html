@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByteBuild PC Store</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; text-align: center; font-weight: bold; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ByteBuild PC Builder</h1>
+        <nav style="text-align: center; margin-bottom: 20px;">
+            <a href="catalog.html" style="padding: 10px 20px; text-decoration: none; background-color: #28a745; color: white; border-radius: 5px; font-weight: bold;">View Live Catalog</a>
+            <a href="swarm-dashboard.html" style="padding: 10px 20px; text-decoration: none; background-color: #7c3aed; color: white; border-radius: 5px; font-weight: bold; margin-left: 10px;">Swarm Dashboard</a>
+        </nav>
+        
+        <label for="cpu-select">Select CPU:</label>
+        <select id="cpu-select">
+            <option value="Intel Core i3-14100">Intel Core i3-14100</option>
+            <option value="Intel Core i5-13600K">Intel Core i5-13600K</option>
+            <option value="Intel Core i5-14600K">Intel Core i5-14600K</option>
+            <option value="Intel Core i7-14700K">Intel Core i7-14700K</option>
+            <option value="Intel Core i9-14900K">Intel Core i9-14900K</option>
+            <option value="AMD Ryzen 3 8300G">AMD Ryzen 3 8300G</option>
+            <option value="AMD Ryzen 5 7600">AMD Ryzen 5 7600</option>
+            <option value="AMD Ryzen 7 7800X3D">AMD Ryzen 7 7800X3D</option>
+            <option value="AMD Ryzen 9 7900X">AMD Ryzen 9 7900X</option>
+            <option value="AMD Ryzen 9 7950X3D">AMD Ryzen 9 7950X3D</option>
+        </select>
+
+        <label for="mobo-select">Select Motherboard:</label>
+        <select id="mobo-select">
+            <option value="ASUS PRIME B760M-A">ASUS PRIME B760M-A (micro ATX, LGA1700)</option>
+            <option value="MSI PRO B760-P WIFI">MSI PRO B760-P WIFI (ATX, LGA1700)</option>
+            <option value="Gigabyte Z790 AORUS ELITE AX">Gigabyte Z790 AORUS ELITE AX (ATX, LGA1700)</option>
+            <option value="ASRock Z790M-ITX">ASRock Z790M-ITX (mini ATX, LGA1700)</option>
+            <option value="MSI MEG Z790 GODLIKE">MSI MEG Z790 GODLIKE (EATX, LGA1700)</option>
+            <option value="MSI MPG B650 CARBON WIFI">MSI MPG B650 CARBON WIFI (ATX, AM5)</option>
+            <option value="Gigabyte B650M DS3H">Gigabyte B650M DS3H (micro ATX, AM5)</option>
+            <option value="ASRock B650E PG-ITX">ASRock B650E PG-ITX (mini ATX, AM5)</option>
+            <option value="ASUS ROG Crosshair X670E Hero">ASUS ROG Crosshair X670E Hero (ATX, AM5)</option>
+            <option value="ASUS ROG Crosshair X670E Extreme">ASUS ROG Crosshair X670E Extreme (EATX, AM5)</option>
+        </select>
+
+        <label for="gpu-select">Select GPU:</label>
+        <select id="gpu-select">
+            <option value="GeForce RTX 4060 Solo">GeForce RTX 4060 Solo (1 fan)</option>
+            <option value="Radeon RX 6600 ITX">Radeon RX 6600 ITX (1 fan)</option>
+            <option value="GeForce RTX 4060 Twin">GeForce RTX 4060 Twin (2 fan)</option>
+            <option value="Radeon RX 7600 Dual">Radeon RX 7600 Dual (2 fan)</option>
+            <option value="GeForce RTX 4070 SUPER Dual">GeForce RTX 4070 SUPER Dual (2 fan)</option>
+            <option value="Radeon RX 7700 XT Dual">Radeon RX 7700 XT Dual (2 fan)</option>
+            <option value="GeForce RTX 4080 SUPER Triple">GeForce RTX 4080 SUPER Triple (3 fan)</option>
+            <option value="GeForce RTX 4090 Triple">GeForce RTX 4090 Triple (3 fan)</option>
+            <option value="Radeon RX 7900 XT Triple">Radeon RX 7900 XT Triple (3 fan)</option>
+            <option value="Radeon RX 7900 XTX Triple">Radeon RX 7900 XTX Triple (3 fan)</option>
+        </select>
+
+        <label for="case-select">Select Case:</label>
+        <select id="case-select">
+            <option value="NZXT H210">NZXT H210 (small)</option>
+            <option value="Cooler Master NR200">Cooler Master NR200 (small)</option>
+            <option value="Thermaltake Core V1">Thermaltake Core V1 (small)</option>
+            <option value="Corsair 4000D Airflow">Corsair 4000D Airflow (mid)</option>
+            <option value="NZXT H5 Flow">NZXT H5 Flow (mid)</option>
+            <option value="Lian Li Lancool 216">Lian Li Lancool 216 (mid)</option>
+            <option value="Fractal Pop Air">Fractal Pop Air (mid)</option>
+            <option value="Corsair 7000D Airflow">Corsair 7000D Airflow (full tower)</option>
+            <option value="Fractal Define 7 XL">Fractal Define 7 XL (full tower)</option>
+            <option value="Phanteks Enthoo Pro 2">Phanteks Enthoo Pro 2 (full tower)</option>
+        </select>
+
+        <button onclick="checkCompatibility()">Verify Compatibility</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function checkCompatibility() {
+            const cpu = document.getElementById('cpu-select').value;
+            const mobo = document.getElementById('mobo-select').value;
+            const gpu = document.getElementById('gpu-select').value;
+            const pcCase = document.getElementById('case-select').value;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.innerText = "Checking...";
+            resultDiv.className = "";
+
+            try {
+                // Fetching from the Logic Engine service published by Docker Swarm
+                const response = await fetch(`http://localhost:5000/validate?cpu=${encodeURIComponent(cpu)}&mobo=${encodeURIComponent(mobo)}&gpu=${encodeURIComponent(gpu)}&pcCase=${encodeURIComponent(pcCase)}`);
+                const data = await response.json();
+
+                if (data.compatible) {
+                    resultDiv.innerText = "✅ Compatible! These parts work together.";
+                    resultDiv.className = "success";
+                } else {
+                    resultDiv.innerText = "❌ Incompatible: " + data.reason;
+                    resultDiv.className = "error";
+                }
+            } catch (error) {
+                resultDiv.innerText = "⚠️ Error connecting to Logic Engine. Is the service running?";
+                resultDiv.className = "error";
+            }
+        }
+    </script>
+</body>
+</html>

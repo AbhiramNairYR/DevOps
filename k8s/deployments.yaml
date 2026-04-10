@@ -1,0 +1,67 @@
+# 1. Web Storefront Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-store-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-store
+  template:
+    metadata:
+      labels:
+        app: web-store
+    spec:
+      containers:
+      - name: web-store
+        image: bytebuild/web-store:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+
+---
+# 2. Catalog Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      containers:
+      - name: catalog
+        image: bytebuild/catalog:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+
+---
+# 3. Logic Engine Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logic-engine-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: logic-engine
+  template:
+    metadata:
+      labels:
+        app: logic-engine
+    spec:
+      containers:
+      - name: logic-engine
+        image: bytebuild/logic-engine:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000

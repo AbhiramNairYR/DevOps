@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByteBuild - Swarm Ops Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); }
+        h1, h2 { margin-top: 0; color: #1f2937; }
+        nav { margin-bottom: 16px; }
+        nav a { text-decoration: none; color: #fff; background: #2563eb; padding: 10px 14px; border-radius: 6px; font-weight: bold; }
+        .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+        button { border: none; background: #2563eb; color: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button.warn { background: #dc2626; }
+        button.secondary { background: #4b5563; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; font-size: 14px; }
+        th { background: #111827; color: #fff; }
+        .status { margin: 10px 0 0; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+        .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+        input[type="number"] { width: 80px; padding: 6px; }
+        .actions { display: flex; gap: 8px; align-items: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Back to Builder</a>
+        </nav>
+        <h1>Swarm Ops Dashboard</h1>
+        <p>Visualize service health and manipulate replicas live.</p>
+
+        <div class="toolbar">
+            <button onclick="refreshAll()">Refresh</button>
+            <button class="secondary" onclick="toggleAutoRefresh()" id="auto-btn">Auto Refresh: Off</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Services</h2>
+                <table id="services-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Replicas</th>
+                            <th>Ports</th>
+                            <th>Scale</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="status" id="services-status"></div>
+            </div>
+
+            <div class="card">
+                <h2>Tasks</h2>
+                <p>Select a service to inspect task states.</p>
+                <table id="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Node</th>
+                            <th>Desired</th>
+                            <th>Current</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="status" id="tasks-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api/swarm';
+        let selectedService = '';
+        let autoTimer = null;
+
+        function setStatus(id, text, isError = false) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.style.color = isError ? '#b91c1c' : '#065f46';
+        }
+
+        async function apiGet(path) {
+            const res = await fetch(`${API}${path}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Request failed');
+            return data;
+        }
+
+        async function apiPost(path, body) {
+            const res = await fetch(`${API}${path}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Request failed');
+            return data;
+        }
+
+        async function loadServices() {
+            try {
+                const data = await apiGet('/services');
+                const tbody = document.querySelector('#services-table tbody');
+                tbody.innerHTML = '';
+
+                data.services.forEach((svc) => {
+                    const tr = document.createElement('tr');
+                    const serviceName = svc.Name;
+                    tr.innerHTML = `
+                        <td><button class="secondary" onclick="selectService('${serviceName}')">${serviceName}</button></td>
+                        <td>${svc.Replicas || '-'}</td>
+                        <td>${svc.Ports || '-'}</td>
+                        <td>
+                            <div class="actions">
+                                <input type="number" min="0" value="${parseInt((svc.Replicas || '1/1').split('/')[1] || '1', 10)}" id="rep-${serviceName}">
+                                <button onclick="scaleService('${serviceName}')">Apply</button>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="warn" onclick="restartService('${serviceName}')">Restart</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                setStatus('services-status', `Loaded ${data.services.length} services.`);
+            } catch (error) {
+                setStatus('services-status', error.message, true);
+            }
+        }
+
+        async function selectService(service) {
+            selectedService = service;
+            await loadTasks(service);
+        }
+
+        async function loadTasks(service) {
+            try {
+                const data = await apiGet(`/tasks/${service}`);
+                const tbody = document.querySelector('#tasks-table tbody');
+                tbody.innerHTML = '';
+
+                data.tasks.forEach((task) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${task.ID || '-'}</td>
+                        <td>${task.Name || '-'}</td>
+                        <td>${task.Node || '-'}</td>
+                        <td>${task.DesiredState || '-'}</td>
+                        <td>${task.CurrentState || '-'}</td>
+                        <td>${task.Error || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                setStatus('tasks-status', `Loaded ${data.tasks.length} tasks for ${service}.`);
+            } catch (error) {
+                setStatus('tasks-status', error.message, true);
+            }
+        }
+
+        async function scaleService(service) {
+            const value = document.getElementById(`rep-${service}`).value;
+            try {
+                const result = await apiPost('/scale', { service, replicas: Number(value) });
+                setStatus('services-status', result.message);
+                await refreshAll();
+            } catch (error) {
+                setStatus('services-status', error.message, true);
+            }
+        }
+
+        async function restartService(service) {
+            try {
+                const result = await apiPost('/restart', { service });
+                setStatus('services-status', result.message);
+                await refreshAll();
+            } catch (error) {
+                setStatus('services-status', error.message, true);
+            }
+        }
+
+        async function refreshAll() {
+            await loadServices();
+            if (selectedService) {
+                await loadTasks(selectedService);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('auto-btn');
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+                btn.textContent = 'Auto Refresh: Off';
+                return;
+            }
+            autoTimer = setInterval(refreshAll, 5000);
+            btn.textContent = 'Auto Refresh: On';
+        }
+
+        refreshAll();
+    </script>
+</body>
+</html>
